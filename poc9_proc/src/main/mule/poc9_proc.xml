@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    
+    <flow name="poc9_proc-main">
+        <http:listener config-ref="poc9_proc-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="poc9_proc-config" />
+		<error-handler ref="global_Error_Handler" />
+        
+    </flow>
+    <flow name="poc9_proc-console">
+        <http:listener config-ref="poc9_proc-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="poc9_proc-config" />
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+    <flow name="post:\proc:application\json:poc9_proc-config">
+		<choice doc:name="Choice" doc:id="3a1ead18-d9a2-4702-ba36-75917d58420b" >
+			<when expression='#[payload.destination == "SFO"]'>
+				<http:request method="POST" doc:name="Request" doc:id="9334c9ca-894d-4b4b-b1a1-20c8416be593" url="http://localhost:8081/api/csv"/>
+				<ee:transform doc:name="Transform Message" doc:id="c3462606-ac9b-4247-8773-d33895ef2e5f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<http:request method="POST" doc:name="Request" doc:id="0055baf9-660d-418d-9128-8289b44fc215" url="http://localhost:8081/api/csv"/>
+				<ee:transform doc:name="Transform Message" doc:id="ea444828-f8e1-4380-af87-4f6d1b0fe399" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+</mule>

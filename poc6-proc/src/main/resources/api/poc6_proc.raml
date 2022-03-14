@@ -1,0 +1,17 @@
+#%RAML 1.0
+title: poc6_proc
+
+
+/wsdl:
+        get:
+         queryParameters:
+           destination:
+             required: false
+             type: string
+         responses:
+          200:
+            body:
+              application/xml:
+                example: !include Example/example.raml
+                  
+                

@@ -1,0 +1,18 @@
+#%RAML 1.0
+title: price-proc
+description: To retrieve the data of particular price
+
+/essentials:
+  /united:
+    /flights:
+      get:
+        queryParameters:
+          price:
+            required: true
+            type: number
+        responses:
+          200:
+            body:
+              application/json:
+                example: !include Example/price.json
+                  

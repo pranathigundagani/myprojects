@@ -1,0 +1,32 @@
+{
+  "configs": [
+    "Global_Error_Handling.xml",
+    "price-proc.xml",
+    "common-config.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:price_poc2_proc:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.4.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "api/Example/price.json",
+        "api/price-proc.raml",
+        "application-types.xml",
+        "common-config.xml",
+        "Global_Error_Handling.xml",
+        "local.yaml",
+        "log4j2.xml",
+        "price-proc.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

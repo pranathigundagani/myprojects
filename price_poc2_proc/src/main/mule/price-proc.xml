@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+   
+    
+	<flow name="price-proc-main">
+        <http:listener config-ref="price-proc-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="price-proc-config" />
+		<error-handler ref="global_Error_Handling" />
+        
+    </flow>
+    <flow name="price-proc-console">
+        <http:listener config-ref="price-proc-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="price-proc-config" />
+		<error-handler ref="global_Error_Handling" />
+    </flow>
+    <flow name="get:\essentials\united\flights:price-proc-config">
+		<logger level="INFO" doc:name="Logger" doc:id="6a99aa82-af9e-4bf6-9fbb-c4f82e8271a4" message='"flow started"' />
+		<set-variable value="#[attributes.queryParams.price as Number]" doc:name="Price Variable" doc:id="f563d21c-7a1a-4fb9-be71-00bf01a57b74" variableName="price" />
+		<http:request method="GET" doc:name="Request" doc:id="b1343edb-171f-422f-bcc2-a8c7a293528e" config-ref="HTTP_Request_configuration" responseTimeout="300000" path="/api/flights">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	price : attributes.queryParams.price as Number
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="e997626c-b8b3-4b81-84b1-a9ba53437907">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.flights filter ($.price == vars.price)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="9f6fa34e-70ba-4aa5-8fbc-7d1c4f7550ef" message='"flow ended"' />
+		<error-handler ref="global_Error_Handling" />
+    </flow>
+</mule>

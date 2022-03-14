@@ -1,0 +1,33 @@
+{
+  "configs": [
+    "commonconfig.xml",
+    "poc7.xml",
+    "error_handling.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:poc7-procc:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.4.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "api/example/example.raml",
+        "api/poc7.raml",
+        "application-types.xml",
+        "commonconfig.xml",
+        "error_handling.xml",
+        "log4j2.xml",
+        "poc7.xml",
+        "secure/http-secure.yaml",
+        "secure/secure.yaml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

@@ -1,0 +1,33 @@
+
+{
+    "return": {
+        "airlineName": "Delta",
+        "code": "A1FGF4",
+        "departureDate": "2015/02/13",
+        "destination": "PDX",
+        "emptySeats": "80",
+        "origin": "MUA",
+        "planeType": "Boing 777",
+        "price": "958.0"
+    },
+    "return": {
+        "airlineName": "Delta",
+        "code": "AFFFC4",
+        "departureDate": "2015/02/20",
+        "destination": "PDX",
+        "emptySeats": "30",
+        "origin": "MUA",
+        "planeType": "Boing 777",
+        "price": "283.0"
+    },
+    "return": {
+        "airlineName": "Delta",
+        "code": "A1B3D4",
+        "departureDate": "2015/02/12",
+        "destination": "PDX",
+        "emptySeats": "10",
+        "origin": "MUA",
+        "planeType": "Boing 777",
+        "price": "385.0"
+    }
+}

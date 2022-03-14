@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+    
+	<flow name="poc6_proc-main">
+        <http:listener config-ref="poc6_proc-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="poc6_proc-config" />
+		<error-handler ref="global_Error_Handler" />
+        
+    </flow>
+    <flow name="poc6_proc-console">
+        <http:listener config-ref="poc6_proc-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="poc6_proc-config" />
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+    <flow name="get:\wsdl:poc6_proc-config">
+		<choice doc:name="Choice" doc:id="cd86cefb-d3ae-43c2-b64b-23767e38465c" >
+			<when expression="#[attributes.queryParams.destination != null]">
+				<http:request method="GET" doc:name="Request" doc:id="31afa4d0-8321-40bc-a370-897e2cb7a4de" url="http://localhost:8082/api/flights" sendCorrelationId="NEVER">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	destination : attributes.queryParams.destination
+}]]]></http:query-params>
+		</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="8dde89e7-faf0-4f0b-b1ac-615f993835fe">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload
+
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<http:request method="GET" doc:name="Request" doc:id="0c5ecb21-a74f-4796-bff1-2ce68dbbf543" url="http://localhost:8082/api/flights"/>
+				<ee:transform doc:name="Transform Message" doc:id="fd0174f3-1db2-49f5-aecb-1239c7929125" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+</mule>

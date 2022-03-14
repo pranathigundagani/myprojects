@@ -1,0 +1,19 @@
+#%RAML 1.0
+title: poc13_sys
+
+/csv:
+  get:
+    queryParameters:
+      country:
+        type: string
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              {
+                    "data" : "code,price,origin,destination, departureDate,airlinesName,planeType,emptySeats,country
+    ER38sd,400,MUA,SFO,20-05-2015,United,Boeing 737,0,India"
+              }
+           
+              

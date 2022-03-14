@@ -1,0 +1,8 @@
+http:
+
+ listener:
+   host: "![xl+B3iFNhFM9p6PXyE2tBA==]"
+   port: "8086"
+   
+ requester:
+   host: "mu.mulesoft-training.com"

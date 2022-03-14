@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc7-test-suite.xml" />
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="ec123df1-8c92-4b03-81aa-c8717266f696" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<munit:test name="poc7-test-suite-get:\poc7:poc7-configTest" doc:id="0c455590-551b-41cc-aafc-a8d23e7e6cb2" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="02ad85aa-36cf-415b-8f0d-368df1b66ee4" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7e30ae3b-a779-4971-8525-f0229e1a58d6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/request.json')]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\poc7:poc7-config" doc:id="6d733b90-070f-4c6a-8f1f-41c4ca106c15" name="get:\poc7:poc7-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="72d51b96-3b8a-4075-9a2d-98817fefa5a9" is='#[MunitTools::equalTo((readUrl("classpath://example/requestresponse.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc7-test-suite-get:\poc7:poc7-configTest1" doc:id="3378fec3-9a48-4cf0-ac95-2df0c061e601" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1bd03217-4bf4-467f-b74b-344470d8efec" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7e30ae3b-a779-4971-8525-f0229e1a58d6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/request.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="468c9c61-eaf4-4681-aa75-9e2b4599578d" >
+				<munit:attributes value="#[{queryParams:{'destination':'SFO'}}]" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\poc7:poc7-config" doc:id="9ebbccae-974d-4acb-859b-9c38b567c985" name="get:\poc7:poc7-config"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="c2d1bcbb-9682-44df-8e87-edab9d8abfa8" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc7-test-suite-poc7-mainTest" doc:id="66e0b86b-2ce6-4089-a31f-90dbd14d3f80" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="poc7-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2490e2f9-6b40-4802-ab95-2f905177ba0c" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc7-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="57f8b368-1af1-415e-a5e0-e6d431f84ea6" >
+				<http:request method="GET" doc:name="Request" doc:id="c0faed51-6257-43cf-91c7-ee1e1623c372" config-ref="HTTP_Request_configuration1" path="/api/poc7" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="3c06ca85-7875-4e10-ba35-d58557f9d28c">
+						<ee:transform doc:name="Transform Message" doc:id="c8fd4ea9-64fe-447a-9d01-040caa2c78ff" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="fc32c1d6-7a34-4058-992f-b4d9d67019df" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc7-test-suite-poc7-mainTest1" doc:id="73e234c7-8f65-44ca-a544-caef5393d027" description="Test">
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source value="poc7-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="aceaaa04-62e2-4133-80a7-ed88ef938df0" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc7-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="5780978c-32d3-4ed5-bb9e-9b7bf3443d1c" >
+				<http:request method="GET" doc:name="Request" doc:id="7ba155e8-35bf-475d-b0d5-7f33115b152c" config-ref="HTTP_Request_configuration1" path="/api/poc7" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ba3cd3cd-68ad-47a6-8441-ab26683b5c70" >
+						<ee:transform doc:name="Transform Message" doc:id="56f2be1e-ce41-4930-ad4d-7c14352bb6f6" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="15ea87b3-debd-44a8-9381-284890f2dbef" is="#[MunitTools::notNullValue()]" expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc7-test-suite-poc7-mainTest2" doc:id="ad516db5-003c-4169-94fa-f1b459b2dc94" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="poc7-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="603c0931-84fd-4a38-b26f-f22d9ee8ee91" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc7-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="89fb748d-2486-4163-8675-58cf4639c378" >
+				<http:request method="GET" doc:name="Request" doc:id="6a7806b1-64dc-4239-ac70-e0756374fa3b" config-ref="HTTP_Request_configuration1" path="/api/poc7" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="07bc9794-c881-4da4-a19e-6a275849c9ff" >
+						<ee:transform doc:name="Transform Message" doc:id="81c3c48b-2b5c-4e16-ae7c-09532ad1cd57" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{"message": "Resource not found"}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="631b5d96-f13c-40f6-96ba-c21624b3b5f8" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

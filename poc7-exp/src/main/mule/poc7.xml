@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    
+    
+	<flow name="poc7-main">
+        <http:listener config-ref="poc7-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="poc7-config" />
+		<error-handler ref="error" />
+       
+    </flow>
+    <flow name="poc7-console">
+        <http:listener config-ref="poc7-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="poc7-config" />
+		<error-handler ref="error" />
+    </flow>
+	<flow name="get:\poc7:poc7-config">
+		<choice doc:name="Choice" doc:id="3cf99452-179e-450b-bca9-4a0119aa5dd6" >
+			<when expression="#[attributes.queryParams.destination != null]">
+				<http:request method="GET" doc:name="Request" doc:id="57e4ddfe-9739-4b45-985a-b73d3236e5b3" config-ref="HTTP_Request_configuration" path="/api/poc7" responseTimeout="300000">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"destination" : attributes.queryParams.destination
+}]]]></http:query-params>
+		</http:request>
+			</when>
+			<otherwise >
+				<http:request method="GET" doc:name="Request" doc:id="d44e1538-48ac-4da5-b5b1-0e080d35d270" config-ref="HTTP_Request_configuration" path="/api/poc7" responseTimeout="300000"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="09f6a68f-ba79-4ba9-85d9-56ea83dfb794" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="error" />
+    </flow>
+</mule>

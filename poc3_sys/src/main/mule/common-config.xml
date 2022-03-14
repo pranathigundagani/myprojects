@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config name="poc3-sys-httpListenerConfig">
+        <http:listener-connection host="${secure::http.listener.host}" port="${http.listener.port}" />
+    </http:listener-config>
+    <apikit:config name="poc3-sys-config" api="poc3-sys.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	 <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="027cbbc7-7306-4f84-ad4a-f3e5560e9fa3" >
+		<http:request-connection host="${http.requester.host}" />
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="e781a901-2dd0-4f4c-920a-5981cf15a5a6" file="local.yaml" />
+	<configuration doc:name="Configuration" doc:id="563828b6-126e-460d-a4f2-24bfde9173ff" defaultErrorHandler-ref="Global_Error_Handler" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="66388ce6-c361-468a-a722-7b0eea860a7c" file="local.yaml" key="mulesoft@1234567" />
+	
+</mule>

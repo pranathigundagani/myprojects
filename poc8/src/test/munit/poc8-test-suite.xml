@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc8-test-suite.xml" />
+	<munit:test name="poc8-test-suite-post:\dw:application\json:poc8-configTest" doc:id="04c7258f-d83e-4ad4-9752-a0179dbc7c74" description="Test">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="8b0a021e-f390-4277-9b52-0ce68023ae59" >
+				<munit:payload value='{&#10;"name":"Raju",&#10;"address":"Hyderabad",&#10;"role":"Associate Trainee",&#10;"company":"mouritech",&#10;"id":"220200"&#10;}&#10;' mediaType="application/json" />
+				<munit:attributes value="#[{headers:{'id':'220200'}}]" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\dw:application\json:poc8-config" doc:id="17f3451c-067e-483f-96d4-2d579001c7b0" name="post:\dw:application\json:poc8-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="33261ded-7343-42a5-9523-e7622b210e4f" expression="#[payload]" is='#[MunitTools::equalTo((readUrl("classpath://example/getResponse.json", "application/json")))]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:NOT_FOUND" doc:id="247e7021-d60c-4ee9-8926-e54ad7c05266" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="poc8-main" />
+			<munit:enable-flow-source value="post:\dw:application\json:poc8-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="4660a54b-b169-4f2f-8006-9f98eb3650aa" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc8-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="70d4647f-82be-4462-ace9-bff018c70074" >
+				<http:request method="POST" doc:name="Request" doc:id="1c1708a5-4d9b-422b-8b95-d9327fa97b60" url="http://localhost:8081/api/"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="357fef15-fe43-4f75-ada8-ab2bc664e22c" >
+						<ee:transform doc:name="Transform Message" doc:id="1802399d-6877-4afe-9bdd-1e98e5b0a2cd" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:NOT_FOUND"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="47c47dcd-dfd2-4d56-81c7-1e976b48a73b" is='#[MunitTools::equalTo((readUrl("classpath://example/resource.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="d7ce7ef2-74bf-4aff-a02f-2cea025aa924" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="poc8-main" />
+			<munit:enable-flow-source value="post:\dw:application\json:poc8-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="442a24ad-fc9c-4932-9fdc-8fb3a325f045" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc8-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="7bdc5d39-9398-4dfc-9616-bbaf1e322700" >
+				<http:request method="GET" doc:name="Request" doc:id="8fffbae7-2279-4e8e-aa12-f5f6855b1996" url="http://localhost:8081/api/dw"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="45595cc8-a7e0-4311-9aa1-8338b1258283" >
+						<ee:transform doc:name="Transform Message" doc:id="ffb65196-fb76-48ec-ace8-f1f96b17dace" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:METHOD_NOT_ALLOWED"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="0c055e45-69d8-45ac-a4ee-ed9564edf0d0" is='#[MunitTools::equalTo((readUrl("classpath://example/method.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

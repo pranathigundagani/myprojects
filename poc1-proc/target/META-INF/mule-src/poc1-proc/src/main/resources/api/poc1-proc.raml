@@ -1,0 +1,17 @@
+#%RAML 1.0
+title: poc1-proc
+description: To retrieve data from particular destination
+
+/essentials:
+  /united:
+    /flights:
+      get:
+        queryParameters:
+          destination:
+            required: true
+            type: string
+        responses:
+          200:
+              body:
+                  application/json:
+                            example: !include /Example/flights.json

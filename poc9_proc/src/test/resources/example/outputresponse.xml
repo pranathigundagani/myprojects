@@ -1,0 +1,10 @@
+<data>
+    <code>ER38sd</code>
+    <price>400</price>
+    <origin>MUA</origin>
+    <destination >CLE</destination>
+    <departureDate>2015/03/20</departureDate>
+    <airlineName>United</airlineName>
+    <planeType>Boeing 737</planeType>
+    <emptySeats>0</emptySeats>
+</data>

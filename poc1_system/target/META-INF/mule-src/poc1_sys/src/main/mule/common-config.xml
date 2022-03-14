@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<http:listener-config name="poc1_sys-httpListenerConfig">
+        <http:listener-connection host="${secure::http.listener.host}" port="${http.listener.port}" />
+    </http:listener-config>
+    <apikit:config name="poc1_sys-config" api="poc1_sys.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="c9e4f04f-e2bb-48cb-8fc2-b78f2d060917" >
+		<http:request-connection host="${http.requester.host}"/>
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="12210011-5b8c-4ac5-865d-f36435a46996" file="local.yaml" />
+	<configuration doc:name="Configuration" doc:id="a14587bf-8f49-42ff-9681-9b3f11e9c199" defaultErrorHandler-ref="global_handler" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="f0822749-a7c3-4ce6-ba9b-41111996e9ed" file="local.yaml" key="mulesoft@1234567" />
+	<api-gateway:autodiscovery apiId="17648631" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="20bf7f92-54d6-4ffa-a644-c3f4dfdda0f4" flowRef="get:\flights:poc1_sys-config" />
+	
+</mule>

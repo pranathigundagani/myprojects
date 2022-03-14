@@ -1,0 +1,18 @@
+#%RAML 1.0
+title: price-sys
+description: To retrieve the data from particular queryparamter
+
+/flights:
+  get:
+    queryParameters:
+      price:
+        required: false
+        type: number
+    responses:
+      200:
+        body:
+          application/json: 
+             example: !include Example/price.json
+            
+            
+        

@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: poc1_sys
+description: To retrieve the flights data
+/flights:
+      get:
+        queryParameters:
+          destination:
+            required: false
+            type: string
+        responses:
+          200:
+              body:
+                 application/json:
+                        example: !include /Example/example.json
+

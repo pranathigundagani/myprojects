@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc9-test-suite.xml" />
+	<munit:test name="poc9-test-suite-post:\csv:application\json:poc9-configTest" doc:id="a58bbd2a-7e72-4c04-b18c-b534cec87848" description="Test">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="f5110697-bf79-4fe4-ae58-233278916792" >
+				<munit:payload value='    {&#10;      "code": "ER38sd",&#10;      "price": 400,&#10;      "origin": "MUA",&#10;      "destination": "SFO",&#10;      "departureDate": "2015/03/20",&#10;      "airlineName": "United",&#10;      "planeType": "Boeing 737",&#10;      "emptySeats": 0&#10;    }&#10;' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\csv:application\json:poc9-config" doc:id="ab66bd87-bdc6-4806-abc1-9549044294e5" name="post:\csv:application\json:poc9-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="afd4874e-c56d-4564-85c5-ca201603b799" expression="#[payload]" is='#[MunitTools::notNullValue()]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="76e234d2-b827-4e14-9807-ef1b46e8da04" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="post:\csv:application\json:poc9-config" />
+			<munit:enable-flow-source value="poc9-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="db6438d4-b92e-4c74-86fd-a6e508741dce" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc9-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="5c4ac50b-7e92-46cc-b4c4-d8988b58f8f2" >
+				<http:request method="GET" doc:name="Request" doc:id="f5614ea1-a55d-424e-9dea-01f291ff71de" url="http://localhost:8081/api/csv"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="4c2b0766-60be-40b3-9a8a-46d1e9cc7fd2" >
+						<ee:transform doc:name="Transform Message" doc:id="7792c3a8-b782-4f06-b590-3f6dd8ea6fee" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:METHOD_NOT_ALLOWED"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="41b53d14-fede-453f-91f0-ac64c52d2c40" is="#[MunitTools::notNullValue()]" expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

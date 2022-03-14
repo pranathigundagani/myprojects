@@ -1,0 +1,24 @@
+#%RAML 1.0
+title: poc10
+
+/dw:
+  post:
+    body:
+      application/json:
+        example:
+          {
+                "name":"<<your_name>>",
+                "age":"<<your_age>>",
+                "city":"<<your_city>>",
+                "role":"<<your_role>>"
+              
+          }
+    responses:
+      201:
+        body:
+          application/json:
+            example:
+              {
+                "data" : "age=<<your_age>>&city=<<your_city>>&name=<<your_name>>& role=<<your_role>>"
+                
+              }

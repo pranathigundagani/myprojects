@@ -1,0 +1,10 @@
+{
+      "code": "ER38sd",
+      "price": 400,
+      "origin": "MUA",
+      "destination": "CLE",
+      "departureDate": "2015/03/20",
+      "airlineName": "United",
+      "planeType": "Boeing 737",
+      "emptySeats": 0
+}

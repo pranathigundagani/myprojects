@@ -1,0 +1,39 @@
+#%RAML 1.0
+title: poc12
+
+/task:
+  post:
+    body:
+      application/json:
+        example:
+          
+              [
+                {
+                "1000": "Alpha"
+                },
+                {
+                "2000": "Bravo"
+                },
+                {
+                "3000": "Charlie"
+                }
+                ]
+    responses:
+      201:
+        body:
+          application/json:
+            example:
+                  [
+                    {
+                    "ID": "1000",
+                    "Name": "Alpha"
+                    },
+                    {
+                    "ID": "2000",
+                    "Name": "Bravo"
+                    },
+                    {
+                    "ID": "3000",
+                    "Name": "Charlie"
+                    }
+                    ]    

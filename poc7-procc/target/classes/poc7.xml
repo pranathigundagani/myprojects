@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+   
+    
+    <wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="86c74083-4837-4198-bf4b-90ea9d226de9" >
+		<wsc:connection wsdlLocation="http://mu.mulesoft-training.com/essentials/delta/flights?wsdl" service="TicketServiceService" port="TicketServicePort" address="http://mu.mulesoft-training.com/essentials/delta/flights" >
+			<wsc:web-service-security actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	
+	<flow name="poc7-main">
+        <http:listener config-ref="poc7-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="poc7-config" />
+		<error-handler ref="error_handlingError_Handler" />
+       
+    </flow>
+    <flow name="poc7-console">
+        <http:listener config-ref="poc7-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="poc7-config" />
+		<error-handler ref="error_handlingError_Handler" />
+    </flow>
+	<flow name="get:\poc7:poc7-config">
+		<set-variable value="#[attributes.queryParams.destination]" doc:name="Set Variable" doc:id="ff45f7f8-4b97-4855-9e92-5cc61e79291e" variableName="name" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f531be21-5974-4694-b900-ab863a658800">
+			<route>
+				<choice doc:name="Choice" doc:id="47d8bfb9-d218-4f2c-bb57-b5ba9d6ab4cb">
+					<when expression="#[vars.name != null]">
+						<http:request method="GET" doc:name="Request" doc:id="7e30ae3b-a779-4971-8525-f0229e1a58d6" config-ref="HTTP_Request_configuration" path="/essentials/united/flights" responseTimeout="300000" />
+						<ee:transform doc:name="Transform Message" doc:id="a653f3c6-6e1a-4c11-b09a-c2289ba7303a">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"united":payload.flights filter $.destination == vars.name
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise>
+						<http:request method="GET" doc:name="Request" doc:id="a1140871-fbf0-4b43-906b-50ec123ec90a" config-ref="HTTP_Request_configuration" path="/essentials/united/flights" responseTimeout="3000000" />
+						<ee:transform doc:name="Transform Message" doc:id="e66f3072-c5d4-453c-b255-cea2cf77d75e">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+			<route>
+				<choice doc:name="Choice" doc:id="32233afb-a87a-40ba-ad9a-8a69741bb57d">
+					<when expression="#[vars.name != null]">
+						<ee:transform doc:name="Transform Message" doc:id="2d8b4110-a49e-4dd2-b460-76f9fd404b02">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://soap.training.mulesoft.com/
+---
+{
+ns0#findFlight:{
+destination: attributes.queryParams.destination
+}
+}
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<wsc:consume operation="findFlight" doc:name="Consume" doc:id="b404509f-2909-4bfc-acac-ff40b7219ecc" config-ref="Web_Service_Consumer_Config" />
+						<ee:transform doc:name="Transform Message" doc:id="0a60a2f9-2cc5-4a68-8c17-c616a57ed8ee">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"deltflights":payload.body.findFlightResponse.*return
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise>
+						<wsc:consume operation="listAllFlights" doc:name="Consume" doc:id="30eef748-6286-47d1-b43c-6eee38fc1dac" config-ref="Web_Service_Consumer_Config" />
+						<ee:transform doc:name="Transform Message" doc:id="ada6c26c-46a8-4d73-a5d4-2e2dfcb9006d">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="dc9a89bb-b5a8-40f9-969b-7af2f456d51f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+flatten (payload..payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="920205da-5e42-4a8b-82f5-d98e2daff2b1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	(payload)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="error_handlingError_Handler" />
+    </flow>
+</mule>

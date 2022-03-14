@@ -1,0 +1,20 @@
+#%RAML 1.0
+title: poc7
+/poc7:
+  get:
+    queryParameters:
+      destination:
+        type: string
+        required: false
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include example/example.raml
+        
+
+              
+
+
+
+              

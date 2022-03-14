@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="price-sys-test-suite.xml" />
+	<munit:test name="price-sys-test-suite-get:\flights:price-sys-configTest" doc:id="712cc235-d9c1-4ea0-8b07-f53748672359" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="539780bc-0ce3-47c3-b2c1-bd5361fcfe50" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="919c7219-5df7-4bcf-ac20-f8ef2e5ee852" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('Example/getResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\flights:price-sys-config" doc:id="00ea2641-0ac3-4f68-8b60-eb11539efe1c" name="get:\flights:price-sys-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="a43f5689-cf3d-42bc-9725-fa551d52bf34" is='#[MunitTools::equalTo((readUrl("classpath://example/outputResponse.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:NOT_FOUND" doc:id="62eb1bd9-91e1-490c-9992-5f551b5dd1a7" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\flights:price-sys-config" />
+			<munit:enable-flow-source value="price-sys-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="d929f95a-7938-4c44-8400-c48f471437c4" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="price-sys-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="32790e4e-41a4-47a9-b2c1-ad50520edc5d" >
+				<http:request method="GET" doc:name="Request" doc:id="d2847820-2648-4865-8c7c-c795e8bef151" url="http://localhost:8084/api/flig"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f7997b16-7e86-4dc6-9cc2-ca8652a19fb7" >
+						<ee:transform doc:name="Transform Message" doc:id="0c0bd893-d9ab-4ab2-b5f3-50bec2a57273" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "Resource_Not_Found"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="1fe90ce4-7dec-4fe5-9840-ddd22041d3f9" is='#[MunitTools::equalTo((readUrl("classpath://Example/resource.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="174a3a9b-c283-496d-8e5c-0fd94befb9fa" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\flights:price-sys-config" />
+			<munit:enable-flow-source value="price-sys-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2a8f8b85-29cf-4057-9ec0-aec21fe847fd" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="price-sys-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="a9794048-ad24-43c2-8257-9875b7ffd4ff" >
+				<http:request method="PUT" doc:name="Request" doc:id="f715203b-20de-4714-a437-9ab54c3ffd98" url="http://localhost:8084/api/flights"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9a07f812-3f4d-4ae5-a7f6-16c57f099bb9" >
+						<ee:transform doc:name="Transform Message" doc:id="e2fccd83-7797-4e79-bb02-24f08d663e59" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:METHOD_NOT_ALLOWED"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="fe32eaa7-e033-4e92-bd98-59178f530261" is='#[MunitTools::equalTo((readUrl("classpath://Example/method.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

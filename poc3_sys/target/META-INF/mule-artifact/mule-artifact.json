@@ -1,0 +1,32 @@
+{
+  "configs": [
+    "poc3-sys.xml",
+    "global_error_handler.xml",
+    "common-config.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:poc3_sys:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.4.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "api/Example/destination.json",
+        "api/poc3-sys.raml",
+        "application-types.xml",
+        "common-config.xml",
+        "global_error_handler.xml",
+        "local.yaml",
+        "log4j2.xml",
+        "poc3-sys.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

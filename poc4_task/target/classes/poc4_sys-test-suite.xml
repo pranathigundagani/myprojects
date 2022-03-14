@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc4_sys-test-suite.xml" />
+	<munit:test name="APIKIT:NOT_FOUND" doc:id="4adfc2ce-d43b-4533-9917-05b328547f0c" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\constants:poc4_sys-config" />
+			<munit:enable-flow-source value="poc4_sys-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="479eeb10-4e74-4a38-8127-61a9d557ef63" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc4_sys-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="baba9abf-87af-4f78-b2bd-20232325d510" >
+				<http:request method="GET" doc:name="Request" doc:id="fab93740-d1b8-4bd7-a1f4-d96304af1189" url="http://localhost:8081/api/const"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="749ccd4e-a56d-4a08-bd3a-3a7506c46252" >
+						<ee:transform doc:name="Transform Message" doc:id="1e111c5b-5ac3-428b-a5d2-2cce2b6c5e76" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:NOT_FOUND"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="9a171dd4-3197-4c66-b473-ca743aa1a72d" is='#[MunitTools::equalTo((readUrl("classpath://notfound.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="4ba66d87-0570-4dc1-baa4-8cacc9bcde58" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\constants:poc4_sys-config" />
+			<munit:enable-flow-source value="poc4_sys-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="5917d477-8b15-4644-981f-99720e874204" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc4_sys-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="16acce09-34fe-43ce-b51d-4dca7163bca3" >
+				<http:request method="CONNECT" doc:name="Request" doc:id="77aaf362-fa37-461e-86f8-5ec3992a7c19" url="http://localhost:8081/api/constants"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="86322a75-ca9b-4128-850b-f5a3c40be974" >
+						<ee:transform doc:name="Transform Message" doc:id="7f335bff-060d-4f5d-963b-2da02a9e6cee" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:METHOD_NOT_ALLOWED"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="e0e7e8dc-a7d4-4092-85c8-bb521a5d4e20" is='#[MunitTools::equalTo((readUrl("classpath://method.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc4_sys-test-suite-get:\constants:poc4_sys-configTest" doc:id="c3ddf8e3-8bef-4247-8e59-9d7ed54e170e" description="Test">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="151fd9f3-7d3c-456e-870a-d3df153aff64" >
+				<munit:payload value="ABCDEFGHIJKLMNOPQRSTUVWXYZ" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\constants:poc4_sys-config" doc:id="4fa58a30-da6e-49f2-b36f-591a350ce915" name="get:\constants:poc4_sys-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="03f023bd-e14b-46ec-97d3-a8f5aefb226e" is='#[MunitTools::equalTo((readUrl("classpath://getResponse.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:NOT_ACCEPTABLE" doc:id="5fc09ce7-7afa-491c-8545-44e437ed5610" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\constants:poc4_sys-config" />
+			<munit:enable-flow-source value="poc4_sys-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="724a7cf5-c3ce-4f83-86a7-c71b9aa05b1e" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc4_sys-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_ACCEPTABLE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="04bb8b79-17c9-4977-86a9-cb784ec25ee5" >
+				<http:request method="GET" doc:name="Request" doc:id="e0be5924-8901-4121-8bcd-cb60a6d4ec34" url="http://localhost:8081/api/constants.html"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="8c1e8fe0-2fad-4c51-a0d5-99b2ce95a542" >
+						<ee:transform doc:name="Transform Message" doc:id="58e58048-3614-4905-a7c7-cf4a288d3eb0" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:NOT_ACCEPTABLE"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="fc846de8-6af3-464f-8046-7ef2f9b06a13" is='#[MunitTools::equalTo((readUrl("classpath://notacceptable.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

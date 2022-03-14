@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc6_proc-test-suite.xml" />
+	<munit:test name="APIKIT:BAD_REQUEST" doc:id="b5212165-c814-47e7-997c-0a09d93680be" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\wsdl:poc6_proc-config" />
+			<munit:enable-flow-source value="poc6_proc-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="6da045df-df04-448d-863e-b1eeef5d4d63" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc6_proc-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="9a8ffd37-326b-42b1-a928-4b7c8588f143" >
+				<http:request method="GET" doc:name="Request" doc:id="0186bed8-90a5-42b6-8d54-0d4068d26494" url="http://localhost:8081/api/wsdl"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="60147eeb-feab-49a2-9a85-a18abc937eee" >
+						<ee:transform doc:name="Transform Message" doc:id="2bb18f0a-594a-4866-b566-6ff3c92ac451" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" :"APIKIT:BAD_REQUEST"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="519112c3-32f8-4c8b-909f-e65df6ed6cc5" is='#[MunitTools::equalTo((readUrl("classpath://example/badrequest.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="84cfbb51-ecaa-40a1-b7c7-784dca6e4921" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\wsdl:poc6_proc-config" />
+			<munit:enable-flow-source value="poc6_proc-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="ae86da28-eabc-4271-8f34-24e873ee1cda" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc6_proc-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="f13713a5-3637-4fa5-afe7-002b45067b98" >
+				<http:request method="PATCH" doc:name="Request" doc:id="fb8a8229-1ecf-470d-a15b-ace4511946e6" url="http://localhost:8081/api/wsdl"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0d0503fe-36e4-41ae-aaba-97d8ce93870b" >
+						<ee:transform doc:name="Transform Message" doc:id="53cb3a96-248c-446c-b7bb-310b5697fd98" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:METHOD_NOT_ALLOWED"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="aedc71c2-8953-4cf1-8647-724a7f2ec4e4" is='#[MunitTools::equalTo((readUrl("classpath://example/method.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc6_proc-test-suite-get:\wsdl:poc6_proc-configTest1" doc:id="2123bfb9-755f-484f-84dd-1927b2551438" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="706801e1-83ff-474a-bd87-d628a1baafb2" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0c5ecb21-a74f-4796-bff1-2ce68dbbf543" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/getResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\wsdl:poc6_proc-config" doc:id="94ccc1a9-1df9-4086-907c-406a234c1acd" name="get:\wsdl:poc6_proc-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="5db6d34f-d493-4e07-8960-79beb134ddba" expression="#[payload]" is='#[MunitTools::equalTo((readUrl("classpath://example/getResponse.json", "application/json")))]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc6_proc-test-suite-get:\wsdl:poc6_proc-configTest" doc:id="23227056-0541-481c-be0f-80996ab0d79e" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2a2bf396-529d-4437-bd89-0af3884e1c96" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="31afa4d0-8321-40bc-a370-897e2cb7a4de" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/getResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="4460838d-6b55-48b7-be63-dc5987ddf0c3" >
+				<munit:attributes value="#[{queryParams:{'destination':'PDX'}}]" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\wsdl:poc6_proc-config" doc:id="3247945b-9553-47ac-8f9d-07d0b0c75395" name="get:\wsdl:poc6_proc-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="2383fe88-b57e-46df-9e5a-4b67901a62ec" is='#[MunitTools::notNullValue()]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

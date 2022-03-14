@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc14-test-suite.xml" />
+	<munit:test name="poc14-test-suite-post:\dwl:application\json:poc14-configTest" doc:id="1f5d8531-71a7-479b-ac3d-73a725ab4e90" description="Test">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="02d69201-8973-4a1a-b7a3-410c41fcdfe7" >
+				<munit:payload value="20200909080000" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\dwl:application\json:poc14-config" doc:id="3a0fa265-eea9-4e43-aa68-6e17c232b6e6" name="post:\dwl:application\json:poc14-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="86757e6b-a657-4ead-b256-cc392afee443" is='#[MunitTools::equalTo((readUrl("classpath://example/getResponse.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:NOT_FOUND" doc:id="b7c8fca5-3907-4f18-82a5-4d834d893eae" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="post:\dwl:application\json:poc14-config" />
+			<munit:enable-flow-source value="poc14-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="06e8ddea-9f08-4bd5-baf9-8ea4b17a5b87" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc14-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="d2204785-281f-48c9-b37a-a2480707b189" >
+				<http:request method="POST" doc:name="Request" doc:id="783ac841-e396-4e13-bf26-561cd934146f" url="http://localhost:8081/api/d"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0aa47fc9-f463-486f-a27b-4541572f32e7" >
+						<ee:transform doc:name="Transform Message" doc:id="7ca35c6c-2cd5-4adf-8c68-2df062c924ae" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:NOT_FOUND"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="77e21250-1e17-4781-b1f4-84e8398db157" is='#[MunitTools::equalTo((readUrl("classpath://example/resource.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="4621effc-1c80-456a-96ce-84cf58812c97" description="Test">
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source value="poc14-main" />
+			<munit:enable-flow-source value="post:\dwl:application\json:poc14-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="bdf537c3-7a08-49a6-af36-5df2add3dc38" processor="apikit:router">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="poc14-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="49901a0a-5d40-4684-9058-c68983f01602">
+				<http:request method="GET" doc:name="Request" doc:id="7d9d7a56-8d1d-438a-bd5d-bd46080cbfcb" url="http://localhost:8081/api/dwl" />
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="380f8e36-e3bf-434e-98d6-9934be080642">
+						<ee:transform doc:name="Transform Message" doc:id="18c8705f-1602-4868-abf9-af2fd155500a">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:METHOD_NOT_ALLOWED"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="7f4ed257-1abc-4118-b280-aae476d1ea53" is='#[MunitTools::equalTo((readUrl("classpath://example/method.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

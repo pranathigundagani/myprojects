@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc1-proc-test-suite.xml" />
+	<munit:test name="poc1-proc-test-suite-get:\essentials\united\flights:poc1-proc-configTest" doc:id="59f0c71a-6349-4e2d-a86c-fc8e7ede0a3d" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1be52e61-677a-4e1d-bc38-6a0146a4878f" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="532a9628-025a-4dfd-bc78-8caacef1d548" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/requestresponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="18e12999-7144-42ec-9d11-b285b086ccb4" >
+				<munit:payload value="payload" mediaType="application/json" />
+				<munit:attributes value="#[{queryParams:{'destination':'PDF'}}]" />
+				<munit:attributes value="#[{queryParams:{'destination':'PDF'}}]" />
+				<munit:attributes value="#[{queryParams:{'destination':'PDF'}}]" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\essentials\united\flights:poc1-proc-config" doc:id="2f8f9d01-8576-4d1c-9b24-385e7d8e681d" name="get:\essentials\united\flights:poc1-proc-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="70c1a46d-70fb-4ba8-a495-569833994886" is='#[MunitTools::equalTo((readUrl("classpath://example/outputresponse.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:BAD_REQUEST" doc:id="95068716-32f8-4ef3-9e00-2c007106efe6" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\essentials\united\flights:poc1-proc-config" />
+			<munit:enable-flow-source value="poc1-proc-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="5c80789b-1486-4c70-8209-084c127d6d09" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc1-proc-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="1a7b421b-1f32-424a-9a52-d5609acc1401" >
+				<http:request method="GET" doc:name="Request" doc:id="aac6ee0d-f962-4dbe-ac6e-4704f41ad125" url="http://localhost:8083/api/essentials/united/flights">
+				</http:request>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="77d4b135-d22a-4f7e-9f57-4c3923ca4445" >
+						<ee:transform doc:name="Transform Message" doc:id="e421d23d-2974-4cab-b496-780fc45bc1d8" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+	{
+   "message" : "Bad request"
+}
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="df64fc41-2720-47e0-9287-795f26a0ddd1" expression="#[payload]" is='#[MunitTools::equalTo((readUrl("classpath://example/badrequest.json", "application/json")))]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:NOT_FOUND" doc:id="9b92e962-4d71-4422-abbe-e3a9ec5eafa5" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\essentials\united\flights:poc1-proc-config" />
+			<munit:enable-flow-source value="poc1-proc-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="98f2a6e3-d668-44d4-b371-e54bf3ef0422" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc1-proc-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="e06a7644-b6bd-40a3-b2ca-f341733e89c0" >
+				<http:request method="GET" doc:name="Request" doc:id="0c68ada1-7785-4cf4-969a-18107ca8ec47" url="http://localhost:8083/api/essentials/united/fli">
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	destination : vars.destination
+}]]]></http:query-params>
+				</http:request>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="446afbf9-3806-401f-99d0-6e5a6913a76b" >
+						<ee:transform doc:name="Transform Message" doc:id="0b1ccedf-aa6c-4b60-bf0e-067ce56716be" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+   "message" : "Resoure not found"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="a1920942-5252-44e2-899f-003ec966b38e" is='#[MunitTools::equalTo((readUrl("classpath://example/resource.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="fb8a8f01-0632-40a7-9411-04478afdadf3" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\essentials\united\flights:poc1-proc-config" />
+			<munit:enable-flow-source value="poc1-proc-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="be463f46-52ea-4b70-957b-57a023c7497a" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc1-proc-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="21dec937-de0a-40f7-af82-3df968a802f9" >
+				<http:request method="PATCH" doc:name="Request" doc:id="98258d3b-3c0f-42d4-9576-8548a8ca9236" url="http://localhost:8083/api/essentials/united/flights">
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	destination : vars.destination
+}]]]></http:query-params>
+				</http:request>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="789163df-c411-4fdd-bec0-44ab313191ee" >
+						<ee:transform doc:name="Transform Message" doc:id="7106d79a-86a6-466d-9937-9853f0582e02" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+   "message" : "Method not allowed"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="90014dfe-294a-4c97-b2aa-f0a2de6f387b" is='#[MunitTools::equalTo((readUrl("classpath://example/method.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

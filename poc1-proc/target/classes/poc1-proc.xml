@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    
+    <flow name="poc1-proc-main">
+        <http:listener config-ref="poc1-proc-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="poc1-proc-config" />
+		<error-handler ref="global_Handler" />
+    </flow>
+    <flow name="poc1-proc-console">
+        <http:listener config-ref="poc1-proc-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="poc1-proc-config" />
+		<error-handler ref="global_Handler" />
+        </flow>
+    <flow name="get:\essentials\united\flights:poc1-proc-config">
+		<logger level="INFO" doc:name="Logger" doc:id="8729eb52-2ae6-4585-b46c-41cd4fc5ea39" message='"flow started"' />
+		<set-variable value="#[attributes.queryParams.destination]" doc:name="Set Variable" doc:id="e2577db2-bee9-4877-b07e-a96d81a50911" variableName="destination" />
+		<http:request method="GET" doc:name="Request" doc:id="532a9628-025a-4dfd-bc78-8caacef1d548" config-ref="HTTP_Request_configuration" path="/api/flights" responseTimeout="300000">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	destination : attributes.queryParams.destination
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="aa06cbf6-8d5b-42c9-8b83-12f993deed80">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+payload.flights filter($.destination == vars.destination) ]]></ee:set-payload>
+			</ee:message>
+			<ee:variables />
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="2f9c55ee-97b3-490f-b01a-78ceccfcd251" message='"flow ended" ' />
+		<error-handler ref="global_Handler" />
+    </flow>
+</mule>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="poc9_proc-test-suite.xml" />
+	<munit:test name="poc9_proc-test-suite-post:\proc:application\json:poc9_proc-configTest1" doc:id="25a700d7-a5dc-411d-b703-d816301b107e" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="8fdd8f95-3f63-4f80-a1d5-ea410761ac93" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0055baf9-660d-418d-9128-8289b44fc215" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/getResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to post:\proc:application\json:poc9_proc-config" doc:id="1c93fc58-0137-43de-a3cb-513eeec6d9d7" name="post:\proc:application\json:poc9_proc-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="f3e56cd1-764b-4d0f-a50d-70dcca0d997e" is='#[MunitTools::equalTo((readUrl("classpath://example/outputresponse.xml", "application/xml")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc9_proc-test-suite-post:\proc:application\json:poc9_proc-configTest" doc:id="21f3bbfb-97bb-48e5-aaf8-003c940be6db" description="Test">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="b94f6d39-df3c-43e6-b218-803e11f5efdf" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="9334c9ca-894d-4b4b-b1a1-20c8416be593" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/getResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="2fed0c07-fade-4317-a936-a2b4d4c5482e" >
+				<munit:payload value='{&#10;      "code": "ER38sd",&#10;      "price": 400,&#10;      "origin": "MUA",&#10;      "destination": "SFO",&#10;      "departureDate": "2015/03/20",&#10;      "airlineName": "United",&#10;      "planeType": "Boeing 737",&#10;      "emptySeats": 0&#10;}' />
+				<munit:payload value="#[{payload:{'destination':'SFO'}}]" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\proc:application\json:poc9_proc-config" doc:id="9bef7c3d-1d60-4cb8-b613-fcf5f91c9ea2" name="post:\proc:application\json:poc9_proc-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="391c746f-0cd6-43f6-ba9b-1211e4113503" expression="#[payload]" is='#[MunitTools::equalTo((readUrl("classpath://example/output.csv", "application/csv")))]'/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

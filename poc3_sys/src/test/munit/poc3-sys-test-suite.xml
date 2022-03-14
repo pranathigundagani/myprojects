@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="poc3-sys-test-suite.xml" />
+	<munit:test name="APIKIT:METHOD_NOT_ALLOWED" doc:id="952108ee-435c-4de8-bc26-59e1d6c0872a" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="get:\flights:poc3-sys-config" />
+			<munit:enable-flow-source value="poc3-sys-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a5c9219e-6685-46dc-af40-4214934b82f5" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc3-sys-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="068ff04c-22ae-40ee-aacd-169731b06063" >
+				<http:request method="OPTIONS" doc:name="Request" doc:id="f4f67e02-36b4-4917-89d1-3456d11dcf9c" url="http://localhost:8086/api/flights"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="970b52a2-9500-4fdd-8d71-cdab6b0d2fdb">
+						<ee:transform doc:name="Transform Message" doc:id="ae7baba4-3c46-49a1-b8c1-d5002ec34ccf" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "APIKIT:METHOD_NOT_ALLOWED"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="b6605804-21be-461f-b81c-91f2ffb55253" is='#[MunitTools::equalTo((readUrl("classpath://example/method.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="HTTP:NOT_FOUND" doc:id="4a35bdd3-a861-4600-9780-26b94691fb2d" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="poc3-sys-main" />
+			<munit:enable-flow-source value="get:\flights:poc3-sys-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="f85a874a-29a5-4376-a4a0-6bcb15b89024" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="poc3-sys-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="3ac541e5-d93f-4cdf-b06b-fc2ad0e93d2f" >
+				<http:request method="GET" doc:name="Request" doc:id="d7636079-67c7-4644-a36a-dc86508146da" url="http://localhost:8086/api/fligh"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b90eca9a-2a0b-426a-b0db-a1d464202dd0">
+						<ee:transform doc:name="Transform Message" doc:id="fec96390-6539-4f15-82fb-4d53c3d72fe2" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "HTTP:NOT_FOUND"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="e0b3ce74-e76f-4e7d-98db-f5598f490fd3" is='#[MunitTools::equalTo((readUrl("classpath://example/resource.json", "application/json")))]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="poc3-sys-test-suite-get:\flights:poc3-sys-configTest" doc:id="eed07188-dbc0-451d-8f3e-e1d314878638" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="d75f61a5-a7d1-4d0c-833b-5bfa5b6be387" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a91bdda9-c272-46f2-a87d-454b48d8b9dd" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('example/getResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\flights:poc3-sys-config" doc:id="741bfe46-1cad-4c96-a0f2-3479df87132f" name="get:\flights:poc3-sys-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="6ff6e35a-e537-4376-8bed-3751fdbdbaec" expression='#[payload]' is='#[MunitTools::equalTo((readUrl("classpath://example/getResponse.json", "application/json")))]'/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

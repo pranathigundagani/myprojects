@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+    
+	<flow name="poc13_sys-main">
+        <http:listener config-ref="poc13_sys-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="poc13_sys-config" />
+		<error-handler ref="global_Error_Handler" />
+        
+    </flow>
+    <flow name="poc13_sys-console">
+        <http:listener config-ref="poc13_sys-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="poc13_sys-config" />
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+    <flow name="get:\csv:poc13_sys-config">
+		<set-variable value="#[attributes.queryParams.country]" doc:name="Set Variable" doc:id="2bb63553-5139-4ae5-bf79-35cd4935493b" variableName="countryname"/>
+		<file:read doc:name="Read" doc:id="afa5c78b-139c-4f98-9a35-273d09312305" config-ref="File_Config" path="C:\Users\pranathig\Downloads\Book1.csv"/>
+		<choice doc:name="Choice" doc:id="f05c3aa1-8b89-48d0-a6f1-33d8a4b10097" >
+			<when expression='#[vars.countryname == "India"]'>
+				<ee:transform doc:name="Transform Message" doc:id="a9a4298d-1e2a-4285-803d-b20b15ac8c6f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload filter($.country == vars.countryname)]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<file:write doc:name="Write" doc:id="a76edc88-5ac7-4204-b5d6-f72adebaff4f" path="C:\Users\pranathig\Downloads\Book1.csv" config-ref="File_Config"/>
+				<ee:transform doc:name="Transform Message" doc:id="0bd61b7f-67a1-4aa8-9d39-474c1dac8af1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+Message : "India data written"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="a7bad2f2-a20f-47f6-a740-38afdbf171c2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload filter($.country == vars.countryname)]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<file:write doc:name="Write" doc:id="88b72bcb-b40b-435f-a30f-7ca4046ded64" path="C:\Users\pranathig\Downloads\Book1.csv" config-ref="File_Config"/>
+				<ee:transform doc:name="Transform Message" doc:id="70913d43-08dd-44d0-ae22-00783c7f34c2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+Message : "germany data written "]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+</mule>
